@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # DATABASE SERVICES
+  # =============================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: syncit-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: syncit-redis-prod
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "auth", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+  # =============================================================================
+  # BACKEND SERVICE
+  # =============================================================================
+  
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: syncit-backend-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      BACKEND_PORT: 5000
+    expose:
+      - "5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+      - frontend
+
+  # =============================================================================
+  # FRONTEND SERVICE
+  # =============================================================================
+  
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: syncit-web-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${PRODUCTION_API_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${PRODUCTION_API_URL}
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - frontend
+
+  # =============================================================================
+  # REVERSE PROXY
+  # =============================================================================
+  
+  nginx:
+    image: nginx:alpine
+    container_name: syncit-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./infra/nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+      - backend
+    networks:
+      - frontend
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge 

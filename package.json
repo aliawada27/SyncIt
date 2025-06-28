@@ -1,0 +1,20 @@
+{
+  "name": "@syncit/demo",
+  "version": "1.0.0",
+  "description": "SyncIt Demo - Version simple",
+  "main": "demo-server.js",
+  "scripts": {
+    "start": "node demo-server.js",
+    "dev": "node demo-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

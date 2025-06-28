@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # DATABASE SERVICES
+  # =============================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: syncit-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: syncit_user
+      POSTGRES_PASSWORD: syncit_password
+      POSTGRES_DB: syncit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syncit_user -d syncit_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: syncit-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # BACKEND SERVICE
+  # =============================================================================
+  
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.dev
+    container_name: syncit-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://syncit_user:syncit_password@postgres:5432/syncit_db
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      BACKEND_PORT: 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # FRONTEND SERVICES
+  # =============================================================================
+  
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.dev
+    container_name: syncit-web-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:5000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # =============================================================================
+  # DEVELOPMENT TOOLS
+  # =============================================================================
+  
+  # Adminer pour la gestion de la DB
+  adminer:
+    image: adminer:latest
+    container_name: syncit-adminer-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  # Redis Insight pour la gestion Redis
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: syncit-redis-insight-dev
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: syncit-network-dev 

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncIt - Organisez vos événements collaboratifs</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .text-gradient {
+            background: linear-gradient(to right, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-gradient">SyncIt</h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <a href="/events" class="text-gray-600 hover:text-blue-600 transition-colors">
+                        Événements
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors">
+                        Tâches
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors">
+                        Chat
+                    </a>
+                    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        Connexion
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-5xl font-bold text-gray-900 mb-6">
+                Organisez vos événements
+                <span class="text-gradient block">en toute simplicité</span>
+            </h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                SyncIt vous aide à planifier, coordonner et réussir vos événements collaboratifs 
+                grâce aux tâches partagées, au chat en temps réel et aux notifications intelligentes.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/events" class="bg-blue-600 text-white text-lg px-8 py-3 rounded-md hover:bg-blue-700 transition-colors">
+                    Commencer maintenant
+                </a>
+                <a href="#demo" class="bg-gray-200 text-gray-900 text-lg px-8 py-3 rounded-md hover:bg-gray-300 transition-colors">
+                    Voir la démo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Tout ce dont vous avez besoin
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Une plateforme complète pour vos événements collaboratifs
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-calendar-alt text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Gestion d'événements</h3>
+                    <p class="text-gray-600">
+                        Créez, planifiez et gérez vos événements avec invitations et calendrier intégré.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Tâches collaboratives</h3>
+                    <p class="text-gray-600">
+                        Organisez le travail avec des tableaux Kanban et assignez des tâches à votre équipe.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-comments text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Chat temps réel</h3>
+                    <p class="text-gray-600">
+                        Communiquez instantanément avec votre équipe grâce au chat en temps réel.
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bell text-orange-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Notifications</h3>
+                    <p class="text-gray-600">
+                        Restez informé avec les notifications push sur mobile et desktop.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Découvrez SyncIt en action
+                </h2>
+                <p class="text-xl text-gray-600">
+                    Testez toutes les fonctionnalités dans notre environnement de démonstration
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-play-circle text-blue-600 text-4xl mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Démo Interactive</h3>
+                        <p class="text-gray-600">Explorez l'interface et testez les fonctionnalités</p>
+                    </div>
+                    <div class="space-y-4">
+                        <a href="/events" class="block w-full bg-blue-600 text-white text-center px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Voir les événements
+                        </a>
+                        <button onclick="createSampleEvent()" class="block w-full bg-green-600 text-white text-center px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Créer un événement
+                        </button>
+                        <button onclick="checkHealth()" class="block w-full bg-gray-600 text-white text-center px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-heartbeat mr-2"></i>
+                            Vérifier l'API
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-code text-purple-600 text-4xl mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">API REST</h3>
+                        <p class="text-gray-600">Testez notre API directement</p>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="bg-gray-100 p-2 rounded">
+                            <code>GET /api/events</code> - Liste des événements
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded">
+                            <code>GET /api/events/:id</code> - Détails d'un événement
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded">
+                            <code>POST /api/events</code> - Créer un événement
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded">
+                            <code>GET /api/tasks</code> - Liste des tâches
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-blue-600">
+        <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-white mb-4">
+                Prêt à transformer vos événements ?
+            </h2>
+            <p class="text-xl text-blue-100 mb-8">
+                Rejoignez des milliers d'organisateurs qui font confiance à SyncIt
+            </p>
+            <a href="/events" class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-medium transition-colors">
+                Commencer gratuitement
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">SyncIt</h3>
+                    <p class="text-gray-400">
+                        La plateforme collaborative pour organiser vos événements en toute simplicité.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Produit</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Fonctionnalités</a></li>
+                        <li><a href="#" class="hover:text-white">Tarifs</a></li>
+                        <li><a href="#demo" class="hover:text-white">Démo</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Centre d'aide</a></li>
+                        <li><a href="#" class="hover:text-white">Contact</a></li>
+                        <li><a href="/api/health" class="hover:text-white">Statut</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Développement</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/api/health" class="hover:text-white">API Status</a></li>
+                        <li><a href="#" class="hover:text-white">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 SyncIt. Tous droits réservés. Version Démo</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Fonctions de démonstration
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                alert(`API Status: ${data.status}\nVersion: ${data.version}\nMode: ${data.mode}`);
+            } catch (error) {
+                alert('Erreur lors de la vérification de l\'API: ' + error.message);
+            }
+        }
+
+        async function createSampleEvent() {
+            try {
+                const response = await fetch('/api/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: 'Nouvel événement de test',
+                        description: 'Créé depuis la page d\'accueil',
+                        startDate: new Date(Date.now() + 86400000).toISOString(),
+                        endDate: new Date(Date.now() + 172800000).toISOString(),
+                    })
+                });
+                const data = await response.json();
+                alert('Événement créé avec succès!');
+                window.location.href = '/events';
+            } catch (error) {
+                alert('Erreur lors de la création de l\'événement: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html> 

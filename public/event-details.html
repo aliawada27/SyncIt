@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de l'événement - SyncIt</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <a href="/events" class="text-blue-600 hover:text-blue-700 font-medium">← Retour aux événements</a>
+                    <h1 id="event-title" class="text-3xl font-bold text-gray-900 mt-2">Chargement...</h1>
+                    <p id="event-description" class="text-gray-600 mt-2"></p>
+                </div>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    <i class="fas fa-share mr-2"></i>Partager
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Event info -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Informations</h2>
+                    <div id="event-info" class="space-y-3">
+                        <!-- Event details will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tasks -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">Tâches</h2>
+                        <button onclick="addTask()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            <i class="fas fa-plus mr-1"></i>Ajouter
+                        </button>
+                    </div>
+                    <div id="tasks-list" class="space-y-3">
+                        <!-- Tasks will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick actions -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
+                    <div class="space-y-3">
+                        <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center justify-center">
+                            <i class="fas fa-comments mr-2"></i>Ouvrir le chat
+                        </button>
+                        <button onclick="addTask()" class="w-full bg-gray-200 text-gray-900 px-4 py-2 rounded-md hover:bg-gray-300 flex items-center justify-center">
+                            <i class="fas fa-tasks mr-2"></i>Gérer les tâches
+                        </button>
+                        <button class="w-full bg-gray-200 text-gray-900 px-4 py-2 rounded-md hover:bg-gray-300 flex items-center justify-center">
+                            <i class="fas fa-user-plus mr-2"></i>Inviter des participants
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Participants -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Participants</h3>
+                    <div id="participants-list" class="space-y-3">
+                        <!-- Participants will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const eventId = window.location.pathname.split('/').pop();
+
+        async function loadEventDetails() {
+            try {
+                const response = await fetch(`/api/events/${eventId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayEventDetails(data.data);
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+            }
+        }
+
+        function displayEventDetails(event) {
+            document.getElementById('event-title').textContent = event.title;
+            document.getElementById('event-description').textContent = event.description;
+
+            // Event info
+            document.getElementById('event-info').innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-3"></i>
+                    <div>
+                        <p class="font-medium">Début: ${formatDate(event.startDate)}</p>
+                        <p class="text-gray-600">Fin: ${formatDate(event.endDate)}</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-users text-gray-400 mr-3"></i>
+                    <p>${event.participants?.length || event.participantsCount || 0} participants</p>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-gray-400 mr-3">#</span>
+                    <p>Code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">${event.inviteCode}</span></p>
+                </div>
+            `;
+
+            // Tasks
+            if (event.tasks && event.tasks.length > 0) {
+                document.getElementById('tasks-list').innerHTML = event.tasks.map(task => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-${task.status === 'done' ? 'check-circle text-green-500' : 'circle text-gray-400'} mr-3"></i>
+                            <span class="${task.status === 'done' ? 'line-through text-gray-500' : ''}">${task.title}</span>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${getTaskStatusClass(task.status)}">
+                            ${getTaskStatusText(task.status)}
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('tasks-list').innerHTML = '<p class="text-gray-500">Aucune tâche pour le moment</p>';
+            }
+
+            // Participants
+            if (event.participants && event.participants.length > 0) {
+                document.getElementById('participants-list').innerHTML = event.participants.map(participant => `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-blue-600 font-medium text-sm">${participant.name.split(' ').map(n => n[0]).join('')}</span>
+                            </div>
+                            <span class="text-sm font-medium">${participant.name}</span>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${participant.role === 'organizer' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                            ${participant.role === 'organizer' ? 'Organisateur' : 'Participant'}
+                        </span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getTaskStatusClass(status) {
+            switch (status) {
+                case 'done': return 'text-green-600 bg-green-100';
+                case 'in_progress': return 'text-orange-600 bg-orange-100';
+                default: return 'text-gray-600 bg-gray-100';
+            }
+        }
+
+        function getTaskStatusText(status) {
+            switch (status) {
+                case 'done': return 'Terminé';
+                case 'in_progress': return 'En cours';
+                default: return 'À faire';
+            }
+        }
+
+        function addTask() {
+            const title = prompt('Titre de la tâche:');
+            if (!title) return;
+            
+            const description = prompt('Description:') || '';
+            
+            fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    eventId: eventId,
+                    priority: 'medium'
+                })
+            }).then(() => {
+                alert('Tâche créée!');
+                loadEventDetails();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadEventDetails);
+    </script>
+</body>
+</html> 

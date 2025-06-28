@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes événements - SyncIt</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <a href="/" class="text-blue-600 hover:text-blue-700 font-medium">← Retour à l'accueil</a>
+                    <h1 class="text-3xl font-bold text-gray-900 mt-2">Mes événements</h1>
+                </div>
+                <button onclick="createEvent()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>Nouvel événement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="flex items-center justify-center py-20">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="max-w-7xl mx-auto py-8 px-4" style="display: none;">
+        <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <script>
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayEvents(data.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            }
+        }
+
+        function displayEvents(events) {
+            const grid = document.getElementById('events-grid');
+            grid.innerHTML = events.map(event => `
+                <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer" onclick="viewEvent('${event.id}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-xl font-semibold text-gray-900">${event.title}</h3>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Actif</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">${event.description}</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            ${formatDate(event.startDate)}
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            ${event.participantsCount} participants
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <span class="text-blue-600 font-medium">Voir les détails →</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function viewEvent(eventId) {
+            window.location.href = `/events/${eventId}`;
+        }
+
+        function createEvent() {
+            const title = prompt('Titre de l\'événement:');
+            if (!title) return;
+            
+            const description = prompt('Description:') || '';
+            
+            fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    startDate: new Date(Date.now() + 86400000).toISOString(),
+                    endDate: new Date(Date.now() + 172800000).toISOString(),
+                })
+            }).then(() => {
+                alert('Événement créé!');
+                loadEvents();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadEvents);
+    </script>
+</body>
+</html> 

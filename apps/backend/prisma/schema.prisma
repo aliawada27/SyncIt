@@ -1,0 +1,394 @@
+// =============================================================================
+// SYNCIT DATABASE SCHEMA - PRISMA
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// AUTHENTICATION MODELS
+// =============================================================================
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  firstName   String
+  lastName    String
+  avatar      String?
+  provider    String   // 'google' | 'facebook'
+  providerId  String
+  bio         String?
+  timezone    String?  @default("UTC")
+  language    String?  @default("en")
+  dateFormat  String?  @default("DD/MM/YYYY")
+  timeFormat  String?  @default("24h")
+  isOnline    Boolean  @default(false)
+  lastSeenAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  createdEvents        Event[]
+  participations       EventParticipant[]
+  createdTasks         Task[]            @relation("TaskCreator")
+  assignedTasks        Task[]            @relation("TaskAssignee")
+  taskComments         TaskComment[]
+  taskAttachments      TaskAttachment[]
+  chatMessages         ChatMessage[]
+  messageReactions     MessageReaction[]
+  notifications        Notification[]
+  fcmTokens            FCMToken[]
+  activities           UserActivity[]
+  sentInvitations      EventInvitation[] @relation("InvitationSender")
+  receivedInvitations  EventInvitation[] @relation("InvitationReceiver")
+  availabilities       CalendarAvailability[]
+
+  @@map("users")
+}
+
+// =============================================================================
+// EVENTS MODELS
+// =============================================================================
+
+model Event {
+  id              String      @id @default(uuid())
+  title           String
+  description     String?
+  location        String?
+  startDate       DateTime
+  endDate         DateTime
+  createdBy       String
+  inviteCode      String      @unique
+  qrCode          String?
+  budget          Decimal?
+  status          EventStatus @default(ACTIVE)
+  isPublic        Boolean     @default(false)
+  maxParticipants Int?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  creator      User                   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  participants EventParticipant[]
+  tasks        Task[]
+  messages     ChatMessage[]
+  invitations  EventInvitation[]
+  availabilities CalendarAvailability[]
+
+  @@map("events")
+}
+
+model EventParticipant {
+  id       String            @id @default(uuid())
+  eventId  String
+  userId   String
+  role     ParticipantRole   @default(PARTICIPANT)
+  status   ParticipantStatus @default(PENDING)
+  joinedAt DateTime          @default(now())
+
+  // Relations
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_participants")
+}
+
+model EventInvitation {
+  id           String           @id @default(uuid())
+  eventId      String
+  invitedBy    String
+  invitedEmail String
+  status       InvitationStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  expiresAt    DateTime
+
+  // Relations
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  inviter User  @relation("InvitationSender", fields: [invitedBy], references: [id], onDelete: Cascade)
+  invitee User? @relation("InvitationReceiver", fields: [invitedEmail], references: [email])
+
+  @@unique([eventId, invitedEmail])
+  @@map("event_invitations")
+}
+
+model CalendarAvailability {
+  id          String   @id @default(uuid())
+  userId      String
+  eventId     String
+  startTime   DateTime
+  endTime     DateTime
+  isAvailable Boolean
+  note        String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_availabilities")
+}
+
+// =============================================================================
+// TASKS MODELS
+// =============================================================================
+
+model Task {
+  id             String       @id @default(uuid())
+  eventId        String
+  title          String
+  description    String?
+  status         TaskStatus   @default(TODO)
+  priority       TaskPriority @default(MEDIUM)
+  assignedTo     String?
+  createdBy      String
+  dueDate        DateTime?
+  estimatedHours Int?
+  actualHours    Int?
+  tags           String[]
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  assignee    User?            @relation("TaskAssignee", fields: [assignedTo], references: [id])
+  creator     User             @relation("TaskCreator", fields: [createdBy], references: [id])
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id           String   @id @default(uuid())
+  taskId       String
+  fileName     String
+  originalName String
+  fileSize     Int
+  mimeType     String
+  url          String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+// =============================================================================
+// CHAT MODELS
+// =============================================================================
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  eventId     String
+  userId      String
+  content     String
+  type        MessageType @default(TEXT)
+  replyTo     String?
+  isEdited    Boolean     @default(false)
+  isDeleted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event            Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  replyToMessage   ChatMessage?         @relation("MessageReply", fields: [replyTo], references: [id])
+  replies          ChatMessage[]        @relation("MessageReply")
+  attachments      MessageAttachment[]
+  reactions        MessageReaction[]
+
+  @@map("chat_messages")
+}
+
+model MessageAttachment {
+  id           String   @id @default(uuid())
+  messageId    String
+  fileName     String
+  originalName String
+  fileSize     Int
+  mimeType     String
+  url          String
+  thumbnailUrl String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_attachments")
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+// =============================================================================
+// NOTIFICATIONS MODELS
+// =============================================================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  type      NotificationType
+  data      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model FCMToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String   // 'web' | 'ios' | 'android'
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("fcm_tokens")
+}
+
+// =============================================================================
+// USER ACTIVITY MODELS
+// =============================================================================
+
+model UserActivity {
+  id          String       @id @default(uuid())
+  userId      String
+  type        ActivityType
+  description String
+  entityId    String?
+  entityType  String?
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_activities")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantRole {
+  ORGANIZER
+  ADMIN
+  PARTICIPANT
+}
+
+enum ParticipantStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  LEFT
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+  TASK_UPDATE
+  EVENT_UPDATE
+}
+
+enum NotificationType {
+  EVENT_INVITATION
+  EVENT_UPDATE
+  EVENT_REMINDER
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_DEADLINE
+  TASK_COMPLETED
+  CHAT_MESSAGE
+  CHAT_MENTION
+  PARTICIPANT_JOINED
+  PARTICIPANT_LEFT
+  SYSTEM
+}
+
+enum ActivityType {
+  EVENT_CREATED
+  EVENT_JOINED
+  EVENT_LEFT
+  TASK_CREATED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  MESSAGE_SENT
+  PROFILE_UPDATED
+} 
